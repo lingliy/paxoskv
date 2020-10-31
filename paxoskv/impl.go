@@ -191,6 +191,11 @@ type Versions map[int64]*Version
 
 // KVServer impl the paxos Acceptor API: handing Prepare and Accept request.
 type KVServer struct {
+	Bal int64
+	Id  int64
+
+	AcceptorIds []int64
+
 	mu      sync.Mutex
 	Storage map[string]Versions
 }
@@ -285,7 +290,9 @@ func ServeAcceptors(acceptorIds []int64) []*grpc.Server {
 
 		s := grpc.NewServer()
 		RegisterPaxosKVServer(s, &KVServer{
-			Storage: map[string]Versions{},
+			Id:          int64(aid),
+			AcceptorIds: acceptorIds,
+			Storage:     map[string]Versions{},
 		})
 		reflection.Register(s)
 		pretty.Logf("Acceptor-%d serving on %s ...", aid, addr)
